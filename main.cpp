@@ -8,7 +8,7 @@
 using namespace std;
 
 int solve(vector<int> &numbers, int target, int nearest);
-int solve_impl(int number1, int number2, const vector<int> numbers, int target, int nearest);
+int solve_impl(int number1, int number2, vector<int> numbers, int target, int nearest);
 
 int main(int argc, char **argv) {
     srand(time(NULL));
@@ -21,8 +21,9 @@ int main(int argc, char **argv) {
     int target = 0;
 
     int manualMode = 0;
+    int quit;
 
-    cout << "Mode manuel? (y:1, n:0)" << endl;
+    cout << "Mode manuel (pick " << howMany << " numbers and a target)? (y:1, n:0)" << endl;
     cin >> manualMode;
 
     if (manualMode) {
@@ -40,13 +41,14 @@ int main(int argc, char **argv) {
     }
 
     do {
-        // Choose a target to obtain or approach the most
+        // Pick a target to obtain or approach the most
         if (!manualMode) {
             target = rand() % (highLimit - lowLimit) + lowLimit;
             numbers.clear();
         }
 
-        // Choose numbers
+        // Display chosen inputs
+        cout << "-------Inputs-------" << endl;
         cout << "Numbers are: ";
         for (int i = 0; i < howMany; ++i) {
             if (!manualMode)
@@ -54,26 +56,32 @@ int main(int argc, char **argv) {
             cout << numbers[i] << " ";
         }
         cout << endl;
-
         cout << "Target is: " << target << endl;
+        cout << "--------------------" << endl;
 
         // Exercise
-        int nearesult = solve(numbers, target, numbers[0]);
+        // Note: initialize nearest with a number to make sure the nearest is attaignable
+        int nearest = solve(numbers, target, numbers[0]);
 
-        if (nearesult == target)
-            cout << "Le compte est bon!" << endl << endl;
+        // Display results
+        cout << "------Results------" << endl;
+        if (nearest == target)
+            cout << "Target reached!" << endl;
         else
-            cout << nearesult << endl << endl;
+            cout << "Nearest is: " << nearest << " (" << target - nearest << " from target)" << endl;
+        cout << endl;
 
-    } while (getchar() != ' ');
+        cout << "Relaunch? (y:1, n:0)" << endl;
+        cin >> quit;
+    } while (quit != 0);
 
     return 0;
 }
 
 int solve(vector<int> &numbers, int target, int nearest) {
-    int result = numbers[0];
+    int result = (numbers.size() == 1) ? numbers[0] : 0;
 
-    for (size_t i = 0; i < numbers.size(); ++i) {
+    for (size_t i = 0; i < numbers.size() - 1; ++i) {
         for (size_t j = i + 1; j < numbers.size(); ++j) {
             vector<int> copyNumbers = numbers;
             copyNumbers.erase(copyNumbers.begin() + i);
@@ -81,8 +89,7 @@ int solve(vector<int> &numbers, int target, int nearest) {
             result = solve_impl(numbers[i], numbers[j], copyNumbers, target, nearest);
             if (abs(target - result) < abs(target - nearest)) {
                 nearest = result;
-
-                cout << "New nearest: " << nearest << " Numbers are: ";
+                cout << "Numbers are: ";
                 for (size_t i = 0; i < numbers.size(); ++i)
                     cout << numbers[i] << " ";
                 cout << endl;
@@ -90,8 +97,13 @@ int solve(vector<int> &numbers, int target, int nearest) {
         }
     }
 
-    if (abs(target - result) < abs(target - nearest))
+    if (abs(target - result) < abs(target - nearest)) {
         nearest = result;
+        cout << "New nearest: " << nearest << " Numbers are: ";
+        for (size_t i = 0; i < numbers.size(); ++i)
+            cout << numbers[i] << " ";
+        cout << "(*)" << endl;
+    }
 
     return nearest;
 }
@@ -107,16 +119,18 @@ int solve_impl(int number1, int number2, vector<int> numbers, int target, int ne
         nearest = number2;
 
     // Addition
-    numbers.push_back(number1 + number2);
-    result = solve(numbers, target, nearest);
-    if (result != nearest) {
-        cout << number1 << '+' << number2 << " = " << number1 + number2 << endl;
-        nearest = result;
+    if ((number1 > 0) && (number2 > 0)) {
+        numbers.push_back(number1 + number2);
+        result = solve(numbers, target, nearest);
+        if (result != nearest) {
+            cout << number1 << '+' << number2 << " = " << number1 + number2 << endl;
+            nearest = result;
+        }
+        numbers.pop_back();
     }
-    numbers.pop_back();
 
     // Product
-    if ((number1 != 1) && (number2 != 1)) {
+    if ((number1 > 1) && (number2 > 1)) {
         numbers.push_back(number1 * number2);
         result = solve(numbers, target, nearest);
         if (result != nearest) {
@@ -127,7 +141,7 @@ int solve_impl(int number1, int number2, vector<int> numbers, int target, int ne
     }
 
     // Substraction
-    if (number1 > number2) {
+    if ((number1 > number2) && (number2 != 0)) {
         numbers.push_back(number1 - number2);
         result = solve(numbers, target, nearest);
         if (result != nearest) {
@@ -135,7 +149,7 @@ int solve_impl(int number1, int number2, vector<int> numbers, int target, int ne
             nearest = result;
         }
         numbers.pop_back();
-    } else if (number2 > number1) {
+    } else if ((number2 > number1) && (number1 != 0)) {
         numbers.push_back(number2 - number1);
         result = solve(numbers, target, nearest);
         if (result != nearest) {
@@ -146,7 +160,7 @@ int solve_impl(int number1, int number2, vector<int> numbers, int target, int ne
     }
 
     // Division
-    if ((number2 != 1) && ((number1 % number2) == 0)) {
+    if ((number1 != 0) && (number2 > 1) && ((number1 % number2) == 0)) {
         numbers.push_back(number1 / number2);
         result = solve(numbers, target, nearest);
         if (result != nearest) {
@@ -154,9 +168,7 @@ int solve_impl(int number1, int number2, vector<int> numbers, int target, int ne
             nearest = result;
         }
         numbers.pop_back();
-    }
-
-    if ((number1 != 1) && ((number2 % number1) == 0)) {
+    } else if ((number2 != 0) && (number1 > 1) && ((number2 % number1) == 0)) {
         numbers.push_back(number2 / number1);
         result = solve(numbers, target, nearest);
         if (result != nearest) {
