@@ -20,11 +20,15 @@ int main(int argc, char **argv) {
     vector<int> numbers;
     int target = 0;
 
-    int manualMode = 0;
+    int mode = 1;
     int quit;
 
-    cout << "Mode manuel (pick " << howMany << " numbers and a target)? (y:1, n:0)" << endl;
-    cin >> manualMode;
+    cout << "Choose a mode below for the game" << endl;
+    cout << "1: Mode normal (" << howMany << " numbers and target are randomly picked)" << endl;
+    cout << "2: Mode manuel (pick " << howMany << " numbers and a target)" << endl;
+    cin >> mode;
+
+    bool manualMode = (mode == 2);
 
     if (manualMode) {
         for (int i = 1; i < howMany + 1; ++i) {
