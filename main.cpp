@@ -182,5 +182,24 @@ int solve_impl(int number1, int number2, vector<int> numbers, int target, int ne
         numbers.pop_back();
     }
 
+    // Modulo
+    if ((number2 != 0) && (number1 >= number2)) {
+        numbers.push_back(number1 % number2);
+        result = solve(numbers, target, nearest);
+        if (result != nearest) {
+            cout << number1 << '%' << number2 << " = " << number1 % number2 << endl;
+            nearest = result;
+        }
+        numbers.pop_back();
+    } else if ((number1 != 0) && (number2 >= number1)) {
+        numbers.push_back(number2 % number1);
+        result = solve(numbers, target, nearest);
+        if (result != nearest) {
+            cout << number2 << '%' << number1 << " = " << number2 % number1 << endl;
+            nearest = result;
+        }
+        numbers.pop_back();
+    }
+
     return nearest;
 }
