@@ -36,4 +36,16 @@ cmake --build build
 
 On Windows, the executable is typically `build\\app.exe`.
 
+## Tests
+
+Unit tests use GoogleTest and are disabled by default. Enable them with the classic CMake option:
+
+```sh
+cmake -S . -B build -DBUILD_TESTS=ON
+cmake --build build
+ctest --test-dir build --output-on-failure
+```
+
+The test configuration uses an installed GoogleTest package when available and otherwise downloads GoogleTest with CMake's `FetchContent` support.
+
 > **Implementation note:** the current recursive solver still considers an individual input as a candidate result. The minimum-two rule above is the intended game rule and should be enforced in the solver before the project is considered complete.
